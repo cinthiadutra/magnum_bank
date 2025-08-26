@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "50536784750",
+    "project_id": "magnum-bank",
+    "storage_bucket": "magnum-bank.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50536784750:android:41b931fd1d22c59369d77f",
+        "android_client_info": {
+          "package_name": "com.example.magnum_bank"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkIVR1bnJTv1SA5yzjwUY1Nl8NQ8VuFko"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
