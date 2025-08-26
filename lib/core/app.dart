@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magnum_bank/data/repositories/auth_repository.dart';
+import 'package:magnum_bank/data/repositories/post_repository.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_bloc.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_event.dart';
 import 'package:magnum_bank/presentation/auth/login_screen.dart';
@@ -11,7 +12,8 @@ import 'package:magnum_bank/presentation/profile/profile_screen.dart';
 
 class App extends StatelessWidget {
   final IAuthRepository authRepository;
-  const App({super.key, required this.authRepository});
+  final IPostRepository postRepository;
+  const App({super.key, required this.authRepository, required this.postRepository});
 
   @override
   Widget build(BuildContext context) {

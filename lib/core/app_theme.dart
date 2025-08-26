@@ -14,7 +14,7 @@ final ThemeData appTheme = ThemeData(
     accentColor: Colors.black,
   ).copyWith(
     // Adiciona uma cor para o texto em segundo plano, garantindo visibilidade.
-    onBackground: Colors.black,
+    onSurface: Colors.black,
   ),
 
   // Estiliza o fundo do Scaffold (a tela principal) com a cor branca.

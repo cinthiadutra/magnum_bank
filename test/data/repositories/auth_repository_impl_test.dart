@@ -1,3 +1,5 @@
+// ignore_for_file: null_argument_to_non_null_type
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:magnum_bank/data/datasources/auth_datasource.dart';
 import 'package:magnum_bank/data/repositories/auth_repository_impl.dart';

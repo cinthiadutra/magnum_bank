@@ -33,6 +33,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await _authRepository.signInWithEmail(
           email: event.email, password: event.password);
+
+         
     } catch (e) {
       debugPrint('Login failed: $e');
     }

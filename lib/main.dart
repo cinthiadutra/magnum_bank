@@ -1,3 +1,5 @@
+// main.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,6 +16,7 @@ import 'package:magnum_bank/data/repositories/post_repository.dart';
 import 'package:magnum_bank/data/repositories/post_repository_impl.dart';
 import 'package:magnum_bank/firebase_options.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_bloc.dart';
+import 'package:magnum_bank/presentation/home/bloc/post_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +44,7 @@ void main() async {
     postRepository: postRepository,
   ));
 }
+
   class MyApp extends StatelessWidget {
   final IAuthRepository authRepository;
   final IPostRepository postRepository;
@@ -54,8 +58,8 @@ void main() async {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AuthBloc>(
-      create: (context) => locator<AuthBloc>(),
-      child: App(authRepository: authRepository),
+      create: (context) => AuthBloc(authRepository: authRepository),
+      child: App(authRepository: authRepository, postRepository: postRepository),
     );
   }
 }

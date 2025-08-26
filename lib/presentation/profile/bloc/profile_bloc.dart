@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
 import 'package:magnum_bank/data/repositories/auth_repository.dart';
 import 'package:magnum_bank/presentation/profile/bloc/profile_event.dart';
 import 'package:magnum_bank/presentation/profile/bloc/profile_state.dart';

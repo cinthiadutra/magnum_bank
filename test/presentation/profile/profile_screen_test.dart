@@ -11,7 +11,6 @@ import 'package:magnum_bank/core/setup_locator.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_bloc.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_state.dart';
 import 'package:magnum_bank/presentation/profile/bloc/profile_bloc.dart';
-import 'package:magnum_bank/presentation/profile/bloc/profile_event.dart';
 import 'package:magnum_bank/presentation/profile/bloc/profile_state.dart';
 import 'package:magnum_bank/presentation/profile/profile_screen.dart';
 import 'package:magnum_bank/domain/entities/user.dart' as user; // Assumindo que você tem essa entidade

@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:magnum_bank/data/repositories/post_repository.dart';
 import 'package:magnum_bank/domain/entities/post.dart';
 import 'package:magnum_bank/presentation/post_details/bloc/post_detail_bloc.dart';

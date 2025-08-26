@@ -1,3 +1,5 @@
+// ignore_for_file: subtype_of_sealed_class
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:magnum_bank/data/datasources/auth_datasource.dart';
 import 'package:magnum_bank/domain/entities/user.dart';

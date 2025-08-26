@@ -12,11 +12,12 @@ class LoginScreen extends StatelessWidget {
     final passwordController = TextEditingController();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: const Text('Login', style: TextStyle(color: Colors.white),), backgroundColor: Colors.red,),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Image.asset('assets/images/logo.jpeg'),
             TextField(
               controller: emailController,
               decoration: const InputDecoration(labelText: 'Email'),
@@ -28,7 +29,12 @@ class LoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(Colors.red),
+
+              ),
               onPressed: () {
+
                 context.read<AuthBloc>().add(
                       AuthLoginRequested(
                         email: emailController.text,
@@ -36,7 +42,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                     );
               },
-              child: const Text('Entrar'),
+              child: const Text('Entrar', style: TextStyle(color: Colors.white),),
             ),
           ],
         ),
