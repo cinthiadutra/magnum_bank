@@ -1,91 +1,110 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:magnum_bank/data/datasources/auth_datasource.dart';
 import 'package:magnum_bank/data/repositories/auth_repository_impl.dart';
 import 'package:magnum_bank/domain/entities/user.dart';
+import 'package:mocktail/mocktail.dart';
 
-// Mock do AuthDataSource
 class MockAuthDataSource extends Mock implements AuthDataSource {}
 
-// Mock do UserCredential
-class MockUserCredential extends Mock implements UserCredential {}
-
-// Mock do User (do Firebase)
-class MockUser extends Mock implements User {}
 void main() {
-  late MockAuthDataSource mockDataSource;
   late AuthRepositoryImpl repository;
+  late MockAuthDataSource mockDataSource;
 
   setUp(() {
     mockDataSource = MockAuthDataSource();
     repository = AuthRepositoryImpl(authDataSource: mockDataSource);
   });
 
-  final testUserId = '123';
-  final testProfile = UserProfile(
-    id: testUserId,
-    nome: 'Leanne Graham',
-    imagem: 'https://url.com/image.jpg',
-    idade: 45,
-    hobbies: ['dançar', 'comer', 'fumar'],
-    qntdPost: 10,
-  );
-
   final testEmail = 'test@example.com';
   final testPassword = '123456';
-  final mockUserCredential = MockUserCredential();
-  final mockUser = MockUser();
+  final testUserCredential = MockUserCredential();
+  final testUserProfile = UserProfile(
+    nome: 'Cinthia',
+    idade: 30,
+    id: '123456789',
+    imagem: '',
+    hobbies: ['andar', 'chorar', 'dormir'],
+    qntdPost: 10,
+  );
+  final testUserId = 'user123';
 
   group('AuthRepositoryImpl', () {
-    test('signInWithEmail calls datasource', () async {
-      when(() => mockDataSource.signInWithEmail(
-              email: testEmail, password: testPassword))
-          .thenAnswer((_) async => mockUserCredential);
+    test('signInWithEmail chama AuthDataSource', () async {
+      when(
+        () => mockDataSource.signInWithEmail(
+          email: testEmail,
+          password: testPassword,
+        ),
+      ).thenAnswer((_) async => testUserCredential);
 
       final result = await repository.signInWithEmail(
-          email: testEmail, password: testPassword);
+        email: testEmail,
+        password: testPassword,
+      );
 
-      expect(result, mockUserCredential);
-      verify(() => mockDataSource.signInWithEmail(
-          email: testEmail, password: testPassword)).called(1);
+      expect(result, testUserCredential);
+      verify(
+        () => mockDataSource.signInWithEmail(
+          email: testEmail,
+          password: testPassword,
+        ),
+      ).called(1);
     });
 
-    test('signOut calls datasource', () async {
-      when(() => mockDataSource.signOut()).thenAnswer((_) async => Future.value());
+    test('signOut chama AuthDataSource', () async {
+      when(
+        () => mockDataSource.signOut(),
+      ).thenAnswer((_) async => Future.value());
 
       await repository.signOut();
 
       verify(() => mockDataSource.signOut()).called(1);
     });
 
-    test('authStateChanges returns datasource stream', () {
-      final controller = Stream<User?>.empty();
-      when(() => mockDataSource.authStateChanges).thenReturn(controller);
+    test('saveUserProfile chama AuthDataSource', () async {
+      when(
+        () => mockDataSource.saveUserProfile(
+          userId: testUserId,
+          profile: testUserProfile,
+        ),
+      ).thenAnswer((_) async => Future.value());
 
-      final result = repository.authStateChanges;
+      await repository.saveUserProfile(
+        userId: testUserId,
+        profile: testUserProfile,
+      );
 
-      expect(result, controller);
+      verify(
+        () => mockDataSource.saveUserProfile(
+          userId: testUserId,
+          profile: testUserProfile,
+        ),
+      ).called(1);
     });
 
-    test('saveUserProfile calls datasource', () async {
-      when(() => mockDataSource.saveUserProfile(userId: testUserId, profile: testProfile))
-          .thenAnswer((_) async => Future.value());
-
-      await repository.saveUserProfile(userId: testUserId, profile: testProfile);
-
-      verify(() => mockDataSource.saveUserProfile(userId: testUserId, profile: testProfile))
-          .called(1);
-    });
-
-    test('getUserProfile calls datasource and returns profile', () async {
-      when(() => mockDataSource.getUserProfileById(testUserId))
-          .thenAnswer((_) async => testProfile);
+    test('getUserProfile retorna o perfil do AuthDataSource', () async {
+      when(
+        () => mockDataSource.getUserProfileById(testUserId),
+      ).thenAnswer((_) async => testUserProfile);
 
       final result = await repository.getUserProfile(userId: testUserId);
 
-      expect(result, testProfile);
+      expect(result, testUserProfile);
       verify(() => mockDataSource.getUserProfileById(testUserId)).called(1);
+    });
+
+    test('authStateChanges delega para AuthDataSource', () {
+      final mockStream = Stream<User?>.empty();
+      when(() => mockDataSource.authStateChanges).thenAnswer((_) => mockStream);
+
+      final stream = repository.authStateChanges;
+
+      expect(stream, mockStream);
+      verify(() => mockDataSource.authStateChanges).called(1);
     });
   });
 }
+
+// Mock de UserCredential
+class MockUserCredential extends Mock implements UserCredential {}

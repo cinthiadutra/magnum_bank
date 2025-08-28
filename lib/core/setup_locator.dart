@@ -16,7 +16,6 @@ import 'package:magnum_bank/presentation/profile/bloc/profile_bloc.dart';
 final locator = GetIt.instance;
 
 void setupLocator() {
-  // Data Sources
   locator.registerLazySingleton<AuthDataSource>(
     () => AuthDataSource(
       auth: FirebaseAuth.instance,
@@ -27,7 +26,6 @@ void setupLocator() {
     () => PostDataSource(dio: Dio()),
   );
 
-  // Repositórios
   locator.registerLazySingleton<IAuthRepository>(
     () => AuthRepositoryImpl(authDataSource: locator<AuthDataSource>()),
   );
@@ -35,19 +33,16 @@ void setupLocator() {
     () => PostRepositoryImpl(postDataSource: locator<PostDataSource>()),
   );
 
-  // BLoCs
-  // AuthBloc precisa ser um singleton para que o redirect do GoRouter funcione
-  // corretamente, pois o BLoC precisa ser acessível globalmente.
   locator.registerSingleton<AuthBloc>(
     AuthBloc(authRepository: locator<IAuthRepository>()),
   );
   locator.registerSingleton<PostsBloc>(
-     PostsBloc(postRepository: locator<IPostRepository>()),
+    PostsBloc(postRepository: locator<IPostRepository>()),
   );
   locator.registerSingleton<PostDetailBloc>(
-   PostDetailBloc(postRepository: locator<IPostRepository>()),
+    PostDetailBloc(postRepository: locator<IPostRepository>()),
   );
   locator.registerSingleton<ProfileBloc>(
-     ProfileBloc(authRepository: locator<IAuthRepository>()),
+    ProfileBloc(authRepository: locator<IAuthRepository>()),
   );
 }

@@ -1,52 +1,55 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:magnum_bank/data/datasources/post_datasource.dart';
 import 'package:magnum_bank/domain/entities/post.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:dio/dio.dart';
 
-class _MockDio extends Mock implements Dio {}
+// Mock do Dio
+class MockDio extends Mock implements Dio {}
 
 void main() {
-  group('PostDataSource', () {
-    late PostDataSource postDataSource;
-    late _MockDio mockDio;
+  late PostDataSource postDataSource;
+  late MockDio mockDio;
 
-    setUp(() {
-      mockDio = _MockDio();
-      postDataSource = PostDataSource(dio: mockDio);
-    });
+  setUp(() {
+    mockDio = MockDio();
+    postDataSource = PostDataSource(dio: mockDio);
+  });
 
-    test('getPosts deve retornar uma lista de Posts em caso de sucesso', () async {
-      final responseData = [
-        {'id': 1, 'userId': 1, 'title': 'Post 1', 'body': 'Body 1'},
-        {'id': 2, 'userId': 1, 'title': 'Post 2', 'body': 'Body 2'},
-      ];
-      final response = Response(
-        data: responseData,
-        statusCode: 200,
-        requestOptions: RequestOptions(path: ''),
-      );
+  test('getPosts deve lançar uma exceção em caso de falha', () async {
+    // Simula erro do Dio
+    when(() => mockDio.get(any())).thenThrow(
+      DioException(requestOptions: RequestOptions(path: '')),
+    );
 
-      when(() => mockDio.get(
-        any(),
-        queryParameters: any(named: 'queryParameters'),
-      )).thenAnswer((_) async => response);
+    // Verifica se getPosts lança Exception
+    expect(
+      () async => await postDataSource.getPosts(),
+      throwsA(isA<Exception>()),
+    );
+  });
 
-      final posts = await postDataSource.getPosts();
-      expect(posts.length, 2);
-      expect(posts[0], isA<Post>());
-    });
+  test('getPosts deve retornar lista de posts em caso de sucesso', () async {
+    // Simula resposta bem-sucedida do Dio
+    final mockResponse = Response(
+      requestOptions: RequestOptions(path: ''),
+      data: [
+        {
+          "userId": 1,
+          "id": 1,
+          "title": "Teste",
+          "body": "Corpo do post"
+        },
+      ],
+      statusCode: 200,
+    );
 
-    test('getPosts deve lançar uma exceção em caso de falha', () async {
-      when(() => mockDio.get(
-        any(),
-        queryParameters: any(named: 'queryParameters'),
-      )).thenThrow(DioException(
-        response: Response(statusCode: 404, requestOptions: RequestOptions(path: '')),
-        requestOptions: RequestOptions(path: ''),
-      ));
+    when(() => mockDio.get(any())).thenAnswer((_) async => mockResponse);
 
-      expect(() => postDataSource.getPosts(), throwsException);
-    });
+    final result = await postDataSource.getPosts();
+
+    expect(result, isA<List<Post>>());
+    expect(result.length, 1);
+    expect(result.first.title, 'Teste');
   });
 }

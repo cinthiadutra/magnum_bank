@@ -25,7 +25,10 @@ class ProfileScreen extends StatelessWidget {
             // Imagem do usuário
             CircleAvatar(
               radius: 60,
-              backgroundImage: NetworkImage(userProfile?.imagem ?? ""),
+              backgroundImage: userProfile!.imagem.isNotEmpty
+                  ? NetworkImage(userProfile!.imagem)
+                  : AssetImage('assets/images/avatar_placeholder.png')
+                        as ImageProvider,
               backgroundColor: Colors.grey[200],
             ),
             const SizedBox(height: 16),

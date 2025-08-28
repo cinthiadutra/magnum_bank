@@ -25,6 +25,17 @@ void main() {
 
   setUp(() {
     mockAuthBloc = MockAuthBloc();
+
+    // Define o estado inicial do BLoC para o widget não quebrar
+    when(
+      () => mockAuthBloc.state,
+    ).thenReturn(const AuthState.unauthenticated());
+
+    // Define o stream para listen(), se o LoginScreen usar BlocListener
+    whenListen(
+      mockAuthBloc,
+      Stream<AuthState>.fromIterable([const AuthState.unauthenticated()]),
+    );
   });
 
   tearDown(() {
@@ -41,7 +52,9 @@ void main() {
   }
 
   group('LoginScreen Widget Test', () {
-    testWidgets('exibe os campos de email e senha e o botão de login', (WidgetTester tester) async {
+    testWidgets('exibe os campos de email e senha e o botão de login', (
+      WidgetTester tester,
+    ) async {
       // Constrói a tela de login
       await tester.pumpWidget(createLoginScreenTestWidget());
 
@@ -53,28 +66,43 @@ void main() {
       expect(find.text('Entrar'), findsOneWidget);
     });
 
-    testWidgets('dispara o evento AuthLoginRequested ao pressionar o botão de login', (WidgetTester tester) async {
-      // Constrói a tela
-      await tester.pumpWidget(createLoginScreenTestWidget());
+    testWidgets(
+      'dispara o evento AuthLoginRequested ao pressionar o botão de login',
+      (WidgetTester tester) async {
+        // Constrói a tela
+        await tester.pumpWidget(createLoginScreenTestWidget());
 
-      // Define o comportamento do mock
-      when(() => mockAuthBloc.state).thenReturn(const AuthState.unauthenticated());
+        // Define o comportamento do mock
+        when(
+          () => mockAuthBloc.state,
+        ).thenReturn(const AuthState.unauthenticated());
 
-      // Insere texto nos campos
-      await tester.enterText(find.widgetWithText(TextField, 'Email'), 'test@example.com');
-      await tester.enterText(find.widgetWithText(TextField, 'Senha'), 'password123');
+        // Insere texto nos campos
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Email'),
+          'test@example.com',
+        );
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Senha'),
+          'password123',
+        );
 
-      // Pressiona o botão
-      await tester.tap(find.byType(ElevatedButton));
+        // Pressiona o botão
+        await tester.tap(find.byType(ElevatedButton));
 
-      // Espera as animações terminarem
-      await tester.pumpAndSettle();
+        // Espera as animações terminarem
+        await tester.pumpAndSettle();
 
-      // Verifica se o evento correto foi adicionado ao BLoC
-      verify(() => mockAuthBloc.add(const AuthLoginRequested(
-            email: 'test@example.com',
-            password: 'password123',
-          ))).called(1);
-    });
+        // Verifica se o evento correto foi adicionado ao BLoC
+        verify(
+          () => mockAuthBloc.add(
+            const AuthLoginRequested(
+              email: 'test@example.com',
+              password: 'password123',
+            ),
+          ),
+        ).called(1);
+      },
+    );
   });
 }

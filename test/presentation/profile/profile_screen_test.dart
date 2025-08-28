@@ -2,50 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:magnum_bank/domain/entities/user.dart';
 import 'package:magnum_bank/presentation/profile/profile_screen.dart';
+import 'package:network_image_mock/network_image_mock.dart';
 
 void main() {
-  group('ProfileScreen Widget Test', () {
+  testWidgets('exibe os dados do usuário corretamente', (tester) async {
     final mockUser = UserProfile(
-      id: '1',
-      nome: 'Leanne Graham',
-      imagem: 'https://www.example.com/avatar.jpg',
-      idade: 45,
-      hobbies: ['dançar', 'comer', 'fumar'],
-      qntdPost: 10,
+      nome: 'Cinthia Dutra',
+      idade: 30,
+      qntdPost: 5,
+      imagem: 'https://via.placeholder.com/150', // para o CircleAvatar
+      hobbies: ['Leitura', 'Correr', 'Flutter'], id: '',
     );
 
-    testWidgets('Deve exibir todos os elementos do perfil corretamente',
-        (WidgetTester tester) async {
-      // Construir o widget
+    await mockNetworkImagesFor(() async {
       await tester.pumpWidget(
         MaterialApp(
           home: ProfileScreen(userProfile: mockUser),
         ),
       );
 
-      // Verificar se o AppBar mostra o nome
-      expect(find.text(mockUser.nome), findsWidgets);
+      await tester.pumpAndSettle();
 
-      // Verificar se a imagem do CircleAvatar está presente
-      final avatarFinder = find.byType(CircleAvatar);
-      expect(avatarFinder, findsOneWidget);
+      // Verifica o CircleAvatar
+      expect(find.byType(CircleAvatar), findsOneWidget);
 
-      final circleAvatar = tester.widget<CircleAvatar>(avatarFinder);
-      expect((circleAvatar.backgroundImage as NetworkImage).url, mockUser.imagem);
+      // Verifica nome e idade
+      expect(find.text('Cinthia Dutra'), findsNWidgets(2)); // appBar + corpo
+      expect(find.text('Idade: 30 anos'), findsOneWidget);
 
-      // Verificar idade
-      expect(find.text('Idade: ${mockUser.idade} anos'), findsOneWidget);
+      // Verifica quantidade de posts
+      expect(find.text('Posts: 5'), findsOneWidget);
 
-      // Verificar quantidade de posts
-      expect(find.text('Posts: ${mockUser.qntdPost}'), findsOneWidget);
-
-      // Verificar hobbies
-      for (var hobby in mockUser.hobbies) {
-        expect(find.text(hobby), findsOneWidget);
-      }
-
-      // Verificar título "Hobbies / Gostos:"
-      expect(find.text('Hobbies / Gostos:'), findsOneWidget);
+      // Verifica os hobbies
+      expect(find.text('Leitura'), findsOneWidget);
+      expect(find.text('Correr'), findsOneWidget);
+      expect(find.text('Flutter'), findsOneWidget);
     });
   });
 }

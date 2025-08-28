@@ -7,8 +7,8 @@ import 'package:magnum_bank/presentation/auth/bloc/auth_state.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+// Mocks
 class _MockIAuthRepository extends Mock implements IAuthRepository {}
-
 class _MockUser extends Mock implements User {}
 
 void main() {
@@ -18,30 +18,32 @@ void main() {
     late _MockUser mockUser;
 
     setUpAll(() {
+      // Registrar fallback para eventos que precisam de valores padrões
       registerFallbackValue(const AuthLoginRequested(email: '', password: ''));
     });
 
     setUp(() {
       mockAuthRepository = _MockIAuthRepository();
-      authBloc = AuthBloc(authRepository: mockAuthRepository);
       mockUser = _MockUser();
+
+      // Configura o Stream antes do AuthBloc ser instanciado
+      when(() => mockAuthRepository.authStateChanges)
+          .thenAnswer((_) => Stream<User?>.empty());
+
+      authBloc = AuthBloc(authRepository: mockAuthRepository);
     });
 
     tearDown(() {
       authBloc.close();
     });
 
-    test('o estado inicial deve ser AuthState.unauthenticated()', () {
+    test('estado inicial deve ser AuthState.unauthenticated()', () {
       expect(authBloc.state, const AuthState.unauthenticated());
     });
 
     blocTest<AuthBloc, AuthState>(
       'emite AuthState.authenticated quando AuthStatusChanged é adicionado com um usuário',
-      build: () {
-        when(() => mockAuthRepository.authStateChanges)
-            .thenAnswer((_) => Stream.value(mockUser));
-        return authBloc;
-      },
+      build: () => authBloc,
       act: (bloc) => bloc.add(AuthStatusChanged(mockUser)),
       expect: () => [
         AuthState.authenticated(mockUser),
@@ -50,11 +52,7 @@ void main() {
 
     blocTest<AuthBloc, AuthState>(
       'emite AuthState.unauthenticated quando AuthStatusChanged é adicionado com null',
-      build: () {
-        when(() => mockAuthRepository.authStateChanges)
-            .thenAnswer((_) => Stream.value(null));
-        return authBloc;
-      },
+      build: () => authBloc,
       act: (bloc) => bloc.add(const AuthStatusChanged(null)),
       expect: () => [
         const AuthState.unauthenticated(),

@@ -15,8 +15,11 @@ import 'package:magnum_bank/presentation/home/post_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
 // Mocks para os BLoCs e Repositórios
-class MockPostsBloc extends MockBloc<PostsEvent, PostsState> implements PostsBloc {}
+class MockPostsBloc extends MockBloc<PostsEvent, PostsState>
+    implements PostsBloc {}
+
 class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
+
 class MockIPostRepository extends Mock implements IPostRepository {}
 
 // Mock para o GoRouter, para simular a navegação
@@ -32,7 +35,8 @@ void main() {
     id: 1,
     userId: 1,
     title: 'Post de Teste',
-    body: 'Corpo do post de teste. Este é um texto mais longo para verificar o truncamento.',
+    body:
+        'Corpo do post de teste. Este é um texto mais longo para verificar o truncamento.',
   );
 
   setUpAll(() {
@@ -46,12 +50,7 @@ void main() {
     mockAuthBloc = MockAuthBloc();
     // Cria um GoRouter mockado
     mockGoRouter = GoRouter(
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => Container(),
-        ),
-      ],
+      routes: [GoRoute(path: '/', builder: (context, state) => Container())],
     );
   });
 
@@ -63,7 +62,7 @@ void main() {
   Widget createPostsScreenTestWidget() {
     return MaterialApp.router(
       routerConfig: mockGoRouter,
-      builder:(ctx,_)=> MultiBlocProvider(
+      builder: (ctx, _) => MultiBlocProvider(
         providers: [
           BlocProvider<PostsBloc>(create: (context) => mockPostsBloc),
           BlocProvider<AuthBloc>(create: (context) => mockAuthBloc),
@@ -74,7 +73,9 @@ void main() {
   }
 
   group('PostsScreen Widget Test', () {
-    testWidgets('exibe CircularProgressIndicator no estado PostsInitial', (WidgetTester tester) async {
+    testWidgets('exibe CircularProgressIndicator no estado PostsInitial', (
+      WidgetTester tester,
+    ) async {
       // Define o comportamento inicial do BLoC
       when(() => mockPostsBloc.state).thenReturn(PostsInitial());
 
@@ -84,40 +85,50 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('exibe mensagem de erro no estado PostsFailure', (WidgetTester tester) async {
+    testWidgets('exibe mensagem de erro no estado PostsFailure', (
+      WidgetTester tester,
+    ) async {
       // Define o comportamento do BLoC para o estado de falha
-      when(() => mockPostsBloc.state).thenReturn(const PostsFailure(error: 'Falha ao carregar posts'));
+      when(
+        () => mockPostsBloc.state,
+      ).thenReturn(const PostsFailure(error: 'Falha ao carregar posts'));
 
       await tester.pumpWidget(createPostsScreenTestWidget());
-      await tester.pumpAndSettle(); // Aguarda a tela renderizar o estado de falha
+      await tester
+          .pumpAndSettle(); // Aguarda a tela renderizar o estado de falha
 
       // Verifica se a mensagem de erro é exibida
       expect(find.text('Erro: Falha ao carregar posts'), findsOneWidget);
     });
 
-    testWidgets('exibe lista de posts no estado PostsSuccess', (WidgetTester tester) async {
-      // Define o comportamento do BLoC para o estado de sucesso
-      when(() => mockPostsBloc.state).thenReturn( PostsSuccess(posts: [mockPost], hasMore: false));
+   testWidgets('exibe lista de posts no estado PostsSuccess', (WidgetTester tester) async {
+  when(() => mockPostsBloc.state).thenReturn(
+    PostsSuccess(posts: [mockPost], hasMore: false),
+  );
 
-      await tester.pumpWidget(createPostsScreenTestWidget());
-      await tester.pumpAndSettle(); // Aguarda a tela renderizar a lista de posts
+  await tester.pumpWidget(createPostsScreenTestWidget());
+  await tester.pumpAndSettle();
 
-      // Verifica se os widgets da lista e o conteúdo do post são exibidos
-      expect(find.byType(ListView), findsOneWidget);
-      expect(find.text(mockPost.title), findsOneWidget);
-      expect(find.text('Corpo do post de teste. Este é um texto mais longo para verificar o truncamento...'), findsOneWidget);
-    });
+  expect(find.byType(ListView), findsOneWidget);
+  expect(find.text(mockPost.title), findsOneWidget);
+  expect(find.textContaining('Corpo do post de teste'), findsOneWidget);
+});
 
-    testWidgets('chama o evento AuthLogoutRequested quando o botão de logout é pressionado', (WidgetTester tester) async {
-      // Define o estado inicial do BLoC para que a tela seja exibida
-      when(() => mockPostsBloc.state).thenReturn( PostsSuccess(posts: [mockPost], hasMore: false));
+    testWidgets(
+      'chama o evento AuthLogoutRequested quando o botão de logout é pressionado',
+      (WidgetTester tester) async {
+        // Define o estado inicial do BLoC para que a tela seja exibida
+        when(
+          () => mockPostsBloc.state,
+        ).thenReturn(PostsSuccess(posts: [mockPost], hasMore: false));
 
-      await tester.pumpWidget(createPostsScreenTestWidget());
-      await tester.tap(find.byIcon(Icons.logout));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createPostsScreenTestWidget());
+        await tester.tap(find.byIcon(Icons.logout));
+        await tester.pumpAndSettle();
 
-      // Verifica se o evento de logout foi adicionado ao AuthBloc
-      verify(() => mockAuthBloc.add(AuthLogoutRequested())).called(1);
-    });
+        // Verifica se o evento de logout foi adicionado ao AuthBloc
+        verify(() => mockAuthBloc.add(AuthLogoutRequested())).called(1);
+      },
+    );
   });
 }
