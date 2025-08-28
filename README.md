@@ -69,6 +69,10 @@ Rode o projeto:
 
 flutter run
 
+para entrar:
+usuario: admin@admin.com
+senha: admin123
+
 🧪 Testes
 
 Os testes unitários foram escritos para garantir o comportamento correto do PostsBloc.
@@ -78,10 +82,6 @@ flutter test
 
 
 Exemplo de cenários testados:
-
-Carregar primeiros 10 posts.
-
-Paginar para mais 10 posts.
 
 Atualizar post com sucesso.
 
@@ -98,5 +98,6 @@ Toda a lógica de paginação foi implementada no Bloc, conforme solicitado.
 👤 Autor
 
 Seu Nome
-🔗 LinkedIn : https://www.linkedin.com/in/cinthiasoudutra/
+🔗 LinkedIn : https://www.linkedin.com/in/cinthiasoudutra
+
  | GitHub: https://github.com/cinthiadutra
