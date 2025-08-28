@@ -7,9 +7,9 @@ import 'package:magnum_bank/presentation/home/bloc/post_state.dart';
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
   final IPostRepository _postRepository;
 
-  List<Post> _allPosts = []; // Todos os posts carregados da API
-  List<Post> _visiblePosts = []; // Posts visíveis atualmente
-  final int _pageSize = 10; // Quantos posts mostrar por vez
+  List<Post> _allPosts = []; 
+  List<Post> _visiblePosts = []; 
+  final int _pageSize = 10; 
   int _currentIndex = 0;
 
   PostsBloc({required IPostRepository postRepository})
@@ -22,7 +22,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   Future<void> _onFetchPosts(FetchPosts event, Emitter<PostsState> emit) async {
   emit(PostsLoading());
   try {
-    // Carrega todos os posts da API, garantindo lista não nula
+    
     final posts = await _postRepository.getPosts() ?? [];
 
     _allPosts = posts;
@@ -45,7 +45,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
     if (_currentIndex >= _allPosts.length) return;
 
-    // Carrega os próximos posts
+    
     final nextIndex = (_currentIndex + _pageSize).clamp(0, _allPosts.length);
     final nextPosts = _allPosts.sublist(_currentIndex, nextIndex);
 

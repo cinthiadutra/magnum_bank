@@ -1,4 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -18,10 +18,10 @@ class GlassContainer extends StatelessWidget {
             margin: EdgeInsets.all(5),
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15), // mais transparente
+              color: Colors.white.withOpacity(0.15), 
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.red.withOpacity(0.3), // borda suave
+                color: Colors.red.withOpacity(0.3), 
                 width: 1.5,
               ),
               boxShadow: [

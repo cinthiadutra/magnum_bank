@@ -1,16 +1,12 @@
-// ignore_for_file: library_private_types_in_public_api
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:magnum_bank/core/setup_locator.dart';
-import 'package:magnum_bank/data/datasources/auth_datasource.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_bloc.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_event.dart';
 import 'package:magnum_bank/presentation/home/bloc/post_bloc.dart';
 import 'package:magnum_bank/presentation/home/bloc/post_events.dart';
 import 'package:magnum_bank/presentation/home/bloc/post_state.dart';
-import 'package:magnum_bank/presentation/profile/profile_screen.dart';
 import 'package:magnum_bank/presentation/shared_widgets/post_item_widget.dart';
 
 class PostsScreen extends StatefulWidget {

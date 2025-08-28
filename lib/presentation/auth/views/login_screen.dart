@@ -16,12 +16,9 @@ class LoginScreen extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated) {
-          // Redireciona para a home
           context.go('/');
         }
-        if (state.status == AuthStatus.unauthenticated) {
-          // Pode mostrar erro se quiser
-        }
+        if (state.status == AuthStatus.unauthenticated) {}
       },
       child: Scaffold(
         appBar: AppBar(

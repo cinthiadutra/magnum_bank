@@ -22,7 +22,6 @@ import '../data/datasources/auth_datasource_test.dart';
 import '../data/repositories/auth_repository_impl_test.dart'
     hide MockUserCredential;
 
-// Mocks
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
 
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
@@ -40,16 +39,13 @@ void main() {
   late MockUser mockUser;
 
   setUp(() {
-    // Reset GetIt antes de cada teste
     GetIt.I.reset();
 
-    // Criação dos mocks
     mockAuth = MockFirebaseAuth();
     mockFirestore = MockFirebaseFirestore();
     mockDio = MockDio();
     mockUser = MockUser();
 
-    // Mock de métodos importantes
     when(() => mockUser.uid).thenReturn('123');
     when(
       () => mockAuth.authStateChanges(),
@@ -61,7 +57,6 @@ void main() {
       ),
     ).thenAnswer((_) async => MockUserCredential());
 
-    // Datasources
     GetIt.I.registerLazySingleton<AuthDataSource>(
       () => AuthDataSource(auth: mockAuth, firestore: mockFirestore),
     );
@@ -69,7 +64,6 @@ void main() {
       () => PostDataSource(dio: mockDio),
     );
 
-    // Repositories
     GetIt.I.registerLazySingleton<IAuthRepository>(
       () => AuthRepositoryImpl(authDataSource: GetIt.I<AuthDataSource>()),
     );
@@ -77,7 +71,6 @@ void main() {
       () => PostRepositoryImpl(postDataSource: GetIt.I<PostDataSource>()),
     );
 
-    // BLoCs
     GetIt.I.registerSingleton<AuthBloc>(
       AuthBloc(authRepository: GetIt.I<IAuthRepository>()),
     );

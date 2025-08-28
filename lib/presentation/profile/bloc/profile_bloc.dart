@@ -21,7 +21,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       if (profile != null) {
         emit(ProfileSuccess(profile: profile));
       } else {
-        // Se o perfil não for encontrado, emite um estado de falha
         emit(const ProfileFailure(error: 'Perfil não encontrado.'));
       }
     } catch (e) {
