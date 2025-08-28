@@ -32,7 +32,7 @@ void main() {
         queryParameters: any(named: 'queryParameters'),
       )).thenAnswer((_) async => response);
 
-      final posts = await postDataSource.getPosts(start: 0, limit: 10);
+      final posts = await postDataSource.getPosts();
       expect(posts.length, 2);
       expect(posts[0], isA<Post>());
     });
@@ -46,7 +46,7 @@ void main() {
         requestOptions: RequestOptions(path: ''),
       ));
 
-      expect(() => postDataSource.getPosts(start: 0, limit: 10), throwsException);
+      expect(() => postDataSource.getPosts(), throwsException);
     });
   });
 }

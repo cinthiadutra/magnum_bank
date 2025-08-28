@@ -9,8 +9,8 @@ class PostRepositoryImpl implements IPostRepository {
       : _postDataSource = postDataSource;
 
   @override
-  Future<List<Post>> getPosts({required int start, required int limit}) {
-    return _postDataSource.getPosts(start: start, limit: limit);
+  Future<List<Post>> getPosts() {
+    return _postDataSource.getPosts();
   }
    @override
   Future<Post> getPostDetails({required int postId}) {

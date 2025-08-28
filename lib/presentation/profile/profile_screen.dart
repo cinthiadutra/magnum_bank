@@ -1,50 +1,109 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:magnum_bank/presentation/auth/bloc/auth_bloc.dart';
-import 'package:magnum_bank/presentation/profile/bloc/profile_bloc.dart';
-import 'package:magnum_bank/presentation/profile/bloc/profile_event.dart';
-import 'package:magnum_bank/presentation/profile/bloc/profile_state.dart';
-
-import '../../core/setup_locator.dart';
+import 'package:magnum_bank/domain/entities/user.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final UserProfile? userProfile;
+
+  const ProfileScreen({super.key, this.userProfile});
 
   @override
   Widget build(BuildContext context) {
-    final userId = context.read<AuthBloc>().state.user?.uid;
-    
-    return BlocProvider<ProfileBloc>(
-      create: (context) => locator<ProfileBloc>()..add(FetchUserProfile(userId: userId!)),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Meu Perfil'),
+    return Scaffold(
+      appBar: AppBar(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.red,
+        centerTitle: true,
+        title: Text(
+          userProfile?.nome ?? "",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        body: BlocBuilder<ProfileBloc, ProfileState>(
-          builder: (context, state) {
-            if (state is ProfileLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state is ProfileSuccess) {
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Nome: ${state.profile.name}'),
-                    Text('Email: ${state.profile.email}'),
-                    Text('Idade: ${state.profile.age}'),
-                    Text('Hobbies: ${state.profile.hobbies.join(', ')}'),
-                    Text('Número de Posts: ${state.profile.postCount}'),
-                  ],
-                ),
-              );
-            }
-            if (state is ProfileFailure) {
-              return Center(child: Text('Erro: ${state.error}'));
-            }
-            return Container();
-          },
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(30.0),
+        child: Column(
+          children: [
+            // Imagem do usuário
+            CircleAvatar(
+              radius: 60,
+              backgroundImage: NetworkImage(userProfile?.imagem ?? ""),
+              backgroundColor: Colors.grey[200],
+            ),
+            const SizedBox(height: 16),
+
+            // Nome
+            Text(
+              userProfile?.nome ?? "",
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
+            const SizedBox(height: 8),
+
+            // Idade
+            Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.red, width: 4),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.cake, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Idade: ${userProfile?.idade} anos',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Quantidade de posts
+                  Row(
+                    children: [
+                      const Icon(Icons.post_add, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Posts: ${userProfile?.qntdPost}',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Hobbies / Gostos
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Hobbies / Gostos:',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: userProfile!.hobbies
+                        .map(
+                          (hobby) => Chip(
+                            label: Text(
+                              hobby,
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              169,
+                              46,
+                              59,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

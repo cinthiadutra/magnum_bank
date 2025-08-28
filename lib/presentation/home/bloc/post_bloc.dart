@@ -1,4 +1,4 @@
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magnum_bank/data/repositories/post_repository.dart';
 import 'package:magnum_bank/domain/entities/post.dart';
 import 'package:magnum_bank/presentation/home/bloc/post_events.dart';
@@ -6,10 +6,11 @@ import 'package:magnum_bank/presentation/home/bloc/post_state.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
   final IPostRepository _postRepository;
-  List<Post> _posts = [];
-  int _page = 0;
-  final int _limit = 10;
-  bool _isLoadingMore = false;
+
+  List<Post> _allPosts = []; // Todos os posts carregados da API
+  List<Post> _visiblePosts = []; // Posts visíveis atualmente
+  final int _pageSize = 10; // Quantos posts mostrar por vez
+  int _currentIndex = 0;
 
   PostsBloc({required IPostRepository postRepository})
       : _postRepository = postRepository,
@@ -19,30 +20,40 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   }
 
   Future<void> _onFetchPosts(FetchPosts event, Emitter<PostsState> emit) async {
-    emit(PostsLoading());
-    try {
-      _posts = await _postRepository.getPosts(start: 0, limit: _limit);
-      _page = 1;
-      emit(PostsSuccess(posts: _posts, hasMore: _posts.length == _limit));
-    } catch (e) {
-      emit(PostsFailure(error: e.toString()));
-    }
-  }
+  emit(PostsLoading());
+  try {
+    // Carrega todos os posts da API, garantindo lista não nula
+    final posts = await _postRepository.getPosts() ?? [];
 
-  Future<void> _onFetchMorePosts(
-      FetchMorePosts event, Emitter<PostsState> emit) async {
-    if (_isLoadingMore) return;
-    _isLoadingMore = true;
-    try {
-      final newPosts =
-          await _postRepository.getPosts(start: _page * _limit, limit: _limit);
-      _posts.addAll(newPosts);
-      _page++;
-      emit(PostsSuccess(posts: _posts, hasMore: newPosts.length == _limit));
-    } catch (e) {
-      emit(PostsFailure(error: e.toString()));
-    } finally {
-      _isLoadingMore = false;
-    }
+    _allPosts = posts;
+    _currentIndex = 0;
+    _visiblePosts = _allPosts.take(_pageSize).toList();
+    _currentIndex = _visiblePosts.length;
+
+    emit(PostsSuccess(
+      posts: _visiblePosts,
+      hasMore: _currentIndex < _allPosts.length,
+    ));
+  } catch (e) {
+    emit(PostsFailure(error: e.toString()));
+  }
+}
+
+  Future<void> _onFetchMorePosts(FetchMorePosts event, Emitter<PostsState> emit) async {
+    if (state is! PostsSuccess) return;
+    final currentState = state as PostsSuccess;
+
+    if (_currentIndex >= _allPosts.length) return;
+
+    // Carrega os próximos posts
+    final nextIndex = (_currentIndex + _pageSize).clamp(0, _allPosts.length);
+    final nextPosts = _allPosts.sublist(_currentIndex, nextIndex);
+
+    _visiblePosts.addAll(nextPosts);
+    _currentIndex = nextIndex;
+
+    emit(PostsSuccess(
+        posts: _visiblePosts,
+        hasMore: _currentIndex < _allPosts.length));
   }
 }

@@ -1,60 +1,79 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:magnum_bank/data/repositories/post_repository.dart';
-import 'package:magnum_bank/domain/entities/post.dart';
 import 'package:magnum_bank/presentation/home/bloc/post_bloc.dart';
-import 'package:magnum_bank/presentation/home/bloc/post_events.dart';
-import 'package:magnum_bank/presentation/home/bloc/post_state.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:magnum_bank/domain/entities/post.dart';
+import 'package:magnum_bank/data/repositories/post_repository.dart';
+import 'package:magnum_bank/presentation/home/bloc/post_state.dart';
+import 'package:magnum_bank/presentation/home/bloc/post_events.dart';
 
-
-class _MockIPostRepository extends Mock implements IPostRepository {}
+// Mock do repositório
+class MockPostRepository extends Mock implements IPostRepository {}
 
 void main() {
-  group('PostsBloc', () {
-    late PostsBloc postsBloc;
-    late _MockIPostRepository mockPostRepository;
+  late PostsBloc postsBloc;
+  late MockPostRepository mockPostRepository;
 
-    setUp(() {
-      mockPostRepository = _MockIPostRepository();
-      postsBloc = PostsBloc(postRepository: mockPostRepository);
-    });
-
-    tearDown(() {
-      postsBloc.close();
-    });
-
-    final mockPosts = [
-       Post(id: 1, userId: 1, title: 'Test Post 1', body: 'Body 1'),
-       Post(id: 2, userId: 1, title: 'Test Post 2', body: 'Body 2'),
-    ];
-
-    blocTest<PostsBloc, PostsState>(
-      'emite [PostsLoading, PostsSuccess] quando FetchPosts é bem-sucedido',
-      build: () {
-        when(() => mockPostRepository.getPosts(start: 0, limit: 10))
-            .thenAnswer((_) async => mockPosts);
-        return postsBloc;
-      },
-      act: (bloc) => bloc.add(FetchPosts()),
-      expect: () => [
-        isA<PostsLoading>(),
-        PostsSuccess(posts: mockPosts, hasMore: true),
-      ],
-    );
-
-    blocTest<PostsBloc, PostsState>(
-      'emite [PostsLoading, PostsFailure] quando FetchPosts falha',
-      build: () {
-        when(() => mockPostRepository.getPosts(start: 0, limit: 10))
-            .thenThrow(Exception('Erro de teste'));
-        return postsBloc;
-      },
-      act: (bloc) => bloc.add(FetchPosts()),
-      expect: () => [
-        isA<PostsLoading>(),
-        isA<PostsFailure>(),
-      ],
-    );
+  setUp(() {
+    mockPostRepository = MockPostRepository();
+    postsBloc = PostsBloc(postRepository: mockPostRepository);
   });
+
+  tearDown(() {
+    postsBloc.close();
+  });
+
+  final fakePosts = List.generate(
+    25,
+    (index) => Post(
+      id: index + 1,
+      userId: 1,
+      title: 'Test Post ${index + 1}',
+      body: 'Body ${index + 1}',
+    ),
+  );
+
+  blocTest<PostsBloc, PostsState>(
+    'emite PostsLoading e PostsSuccess com posts carregados corretamente',
+    build: () {
+      when(
+        () => mockPostRepository.getPosts(),
+      ).thenAnswer((_) async => fakePosts);
+      return postsBloc;
+    },
+    act: (bloc) => bloc.add(FetchPosts()),
+    expect: () => [
+      isA<PostsLoading>(),
+      predicate<PostsSuccess>(
+        (state) => state.posts.length == 10 && state.hasMore == true,
+      ),
+    ],
+  );
+
+  blocTest<PostsBloc, PostsState>(
+    'emite PostsLoading e PostsSuccess vazio caso repositório retorne null',
+    build: () {
+      when(() => mockPostRepository.getPosts()).thenAnswer((_) async => []);
+      return postsBloc;
+    },
+    act: (bloc) => bloc.add(FetchPosts()),
+    expect: () => [
+      isA<PostsLoading>(),
+      predicate<PostsSuccess>(
+        (state) => state.posts.isEmpty && state.hasMore == false,
+      ),
+    ],
+  );
+
+  blocTest<PostsBloc, PostsState>(
+    'emite PostsFailure caso ocorra exceção',
+    build: () {
+      when(
+        () => mockPostRepository.getPosts(),
+      ).thenThrow(Exception('Erro na API'));
+      return postsBloc;
+    },
+    act: (bloc) => bloc.add(FetchPosts()),
+    expect: () => [isA<PostsLoading>(), isA<PostsFailure>()],
+  );
 }

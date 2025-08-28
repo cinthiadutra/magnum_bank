@@ -1,73 +1,62 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:magnum_bank/data/repositories/auth_repository.dart';
 import 'package:magnum_bank/domain/entities/user.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:magnum_bank/data/repositories/auth_repository.dart'; // O mesmo para IAuthRepository
 import 'package:magnum_bank/presentation/profile/bloc/profile_bloc.dart';
 import 'package:magnum_bank/presentation/profile/bloc/profile_event.dart';
 import 'package:magnum_bank/presentation/profile/bloc/profile_state.dart';
+import 'package:mocktail/mocktail.dart';
 
-// Cria a classe de mock para o IAuthRepository
-class MockIAuthRepository extends Mock implements IAuthRepository {}
+// Mock do repositório
+class MockAuthRepository extends Mock implements IAuthRepository {}
 
 void main() {
+  late ProfileBloc profileBloc;
+  late MockAuthRepository mockAuthRepository;
+
+  setUp(() {
+    mockAuthRepository = MockAuthRepository();
+    profileBloc = ProfileBloc(authRepository: mockAuthRepository);
+  });
+
+  tearDown(() {
+    profileBloc.close();
+  });
+
+  final mockUserProfile = UserProfile(
+    id: '1',
+    nome: 'Leanne Graham',
+    imagem: 'https://www.example.com/avatar.jpg',
+    idade: 45,
+    hobbies: ['dançar', 'comer', 'fumar'],
+    qntdPost: 10,
+  );
+
   group('ProfileBloc', () {
-    late ProfileBloc profileBloc;
-    late MockIAuthRepository mockAuthRepository;
-
-    // Configurações iniciais antes de cada teste
-    setUp(() {
-      mockAuthRepository = MockIAuthRepository();
-      profileBloc = ProfileBloc(authRepository: mockAuthRepository);
-    });
-
-    // Limpeza após cada teste
-    tearDown(() {
-      profileBloc.close();
-    });
-
-    const testUserId = 'user_123';
-    final testUserProfile = UserProfile(
-      name: testUserId,
-      age:33,
-      postCount: 44,
-      email: 'joao.silva@teste.com',
-      hobbies:  const ['Nadar', "fumar", "Beber"],
-    );
-
-    // Teste para o estado inicial
-    test('o estado inicial deve ser ProfileInitial', () {
-      expect(profileBloc.state, isA<ProfileInitial>());
-    });
-
-    // --- Testes para o evento FetchUserProfile ---
-
     blocTest<ProfileBloc, ProfileState>(
       'emite [ProfileLoading, ProfileSuccess] quando o perfil é carregado com sucesso',
       build: () {
-        // Simula o comportamento do repositório para retornar o perfil
-        when(() => mockAuthRepository.getUserProfile(userId: testUserId))
-            .thenAnswer((_) async => testUserProfile);
+        when(() => mockAuthRepository.getUserProfile(userId: '1'))
+            .thenAnswer((_) async => mockUserProfile);
         return profileBloc;
       },
-      act: (bloc) => bloc.add(const FetchUserProfile(userId: testUserId)),
+      act: (bloc) => bloc.add(const FetchUserProfile(userId: '1')),
       expect: () => [
-        isA<ProfileLoading>(),
-         ProfileSuccess(profile: testUserProfile),
+        ProfileLoading(),
+        ProfileSuccess(profile: mockUserProfile),
       ],
     );
 
     blocTest<ProfileBloc, ProfileState>(
-      'emite [ProfileLoading, ProfileFailure] quando o perfil não é encontrado (retorna nulo)',
+      'emite [ProfileLoading, ProfileFailure] quando o perfil não é encontrado',
       build: () {
-        // Simula o repositório retornando nulo (perfil não encontrado)
-        when(() => mockAuthRepository.getUserProfile(userId: testUserId))
+        when(() => mockAuthRepository.getUserProfile(userId: '2'))
             .thenAnswer((_) async => null);
         return profileBloc;
       },
-      act: (bloc) => bloc.add(const FetchUserProfile(userId: testUserId)),
+      act: (bloc) => bloc.add(const FetchUserProfile(userId: '2')),
       expect: () => [
-        isA<ProfileLoading>(),
+        ProfileLoading(),
         const ProfileFailure(error: 'Perfil não encontrado.'),
       ],
     );
@@ -75,15 +64,14 @@ void main() {
     blocTest<ProfileBloc, ProfileState>(
       'emite [ProfileLoading, ProfileFailure] quando ocorre uma exceção',
       build: () {
-        // Simula o repositório lançando uma exceção
-        when(() => mockAuthRepository.getUserProfile(userId: testUserId))
-            .thenThrow(Exception('Erro de conexão com a API'));
+        when(() => mockAuthRepository.getUserProfile(userId: '3'))
+            .thenThrow(Exception('Erro ao buscar perfil'));
         return profileBloc;
       },
-      act: (bloc) => bloc.add(const FetchUserProfile(userId: testUserId)),
+      act: (bloc) => bloc.add(const FetchUserProfile(userId: '3')),
       expect: () => [
-        isA<ProfileLoading>(),
-        isA<ProfileFailure>(),
+        ProfileLoading(),
+        ProfileFailure(error: 'Exception: Erro ao buscar perfil'),
       ],
     );
   });

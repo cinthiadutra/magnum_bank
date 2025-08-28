@@ -7,7 +7,7 @@ import 'package:magnum_bank/data/repositories/auth_repository.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_bloc.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_event.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_state.dart';
-import 'package:magnum_bank/presentation/auth/login_screen.dart'; // O caminho para a sua tela de login
+import 'package:magnum_bank/presentation/auth/views/login_screen.dart'; // O caminho para a sua tela de login
 
 // Cria uma classe de mock para o AuthBloc
 class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}

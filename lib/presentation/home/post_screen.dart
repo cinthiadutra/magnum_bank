@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magnum_bank/core/setup_locator.dart';
+import 'package:magnum_bank/data/datasources/auth_datasource.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_bloc.dart';
 import 'package:magnum_bank/presentation/auth/bloc/auth_event.dart';
 import 'package:magnum_bank/presentation/home/bloc/post_bloc.dart';
 import 'package:magnum_bank/presentation/home/bloc/post_events.dart';
 import 'package:magnum_bank/presentation/home/bloc/post_state.dart';
+import 'package:magnum_bank/presentation/profile/profile_screen.dart';
+import 'package:magnum_bank/presentation/shared_widgets/post_item_widget.dart';
 
 class PostsScreen extends StatefulWidget {
   const PostsScreen({super.key});
@@ -56,16 +59,15 @@ class _PostsScreenState extends State<PostsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Posts'),
+        centerTitle: true,
+        title: const Text(
+          'Posts',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: Colors.red,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              context.go('/profile');
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () {
               context.read<AuthBloc>().add(AuthLogoutRequested());
             },
@@ -86,22 +88,22 @@ class _PostsScreenState extends State<PostsScreen> {
               controller: _scrollController,
               itemCount: posts.length + (state.hasMore ? 1 : 0),
               itemBuilder: (context, index) {
-                if (index >= posts.length) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
+                if (index >= state.posts.length) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(child: CircularProgressIndicator()),
                   );
                 }
-                final post = posts[index];
-                return ListTile(
-                  title: Text(post.title),
-                  subtitle: Text(
-                    post.body.length > 100
-                        ? '${post.body.substring(0, 100)}...'
-                        : post.body,
+
+                final post = state.posts[index];
+                return GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PostItemWidget(post: post),
+                    ),
                   ),
-                  onTap: () {
-                    context.go('/post/${post.id}');
-                  },
+                  child: PostItemWidget(post: post),
                 );
               },
             );

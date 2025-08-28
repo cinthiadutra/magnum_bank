@@ -1,35 +1,62 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:magnum_bank/data/datasources/post_datasource.dart';
 import 'package:magnum_bank/data/repositories/post_repository_impl.dart';
 import 'package:magnum_bank/domain/entities/post.dart';
-import 'package:mocktail/mocktail.dart';
 
-class _MockPostDataSource extends Mock implements PostDataSource {}
+// Mock do PostDataSource
+class MockPostDataSource extends Mock implements PostDataSource {}
 
 void main() {
+  late PostRepositoryImpl repository;
+  late MockPostDataSource mockDataSource;
+
+  setUp(() {
+    mockDataSource = MockPostDataSource();
+    repository = PostRepositoryImpl(postDataSource: mockDataSource);
+  });
+
   group('PostRepositoryImpl', () {
-    late PostRepositoryImpl postRepository;
-    late _MockPostDataSource mockPostDataSource;
+    final postList = [
+      Post(userId: 1, id: 1, title: 'Title 1', body: 'Body 1'),
+      Post(userId: 1, id: 2, title: 'Title 2', body: 'Body 2'),
+    ];
 
-    setUp(() {
-      mockPostDataSource = _MockPostDataSource();
-      postRepository = PostRepositoryImpl(postDataSource: mockPostDataSource);
+    test('getPosts retorna lista de posts', () async {
+      // Arrange
+      when(() => mockDataSource.getPosts())
+          .thenAnswer((_) async => postList);
+
+      // Act
+      final result = await repository.getPosts();
+
+      // Assert
+      expect(result, postList);
+      verify(() => mockDataSource.getPosts()).called(1);
     });
 
-    test('getPosts deve chamar o método correspondente no data source', () async {
-      final mockPosts = [ Post(id: 1, userId: 1, title: 'Test', body: 'Body')];
-      when(() => mockPostDataSource.getPosts(start: 0, limit: 10))
-          .thenAnswer((_) async => mockPosts);
-      await postRepository.getPosts(start: 0, limit: 10);
-      verify(() => mockPostDataSource.getPosts(start: 0, limit: 10)).called(1);
+    test('getPostDetails retorna post específico', () async {
+      // Arrange
+      final post = Post(userId: 1, id: 1, title: 'Title 1', body: 'Body 1');
+      when(() => mockDataSource.getPostDetails(postId: 1))
+          .thenAnswer((_) async => post);
+
+      // Act
+      final result = await repository.getPostDetails(postId: 1);
+
+      // Assert
+      expect(result, post);
+      verify(() => mockDataSource.getPostDetails(postId: 1)).called(1);
     });
 
-    test('getPostDetails deve chamar o método correspondente no data source', () async {
-      var mockPost = Post(id: 1, userId: 1, title: 'Test', body: 'Body');
-      when(() => mockPostDataSource.getPostDetails(postId: 1))
-          .thenAnswer((_) async => mockPost);
-      await postRepository.getPostDetails(postId: 1);
-      verify(() => mockPostDataSource.getPostDetails(postId: 1)).called(1);
+    test('getPostDetails lança exceção se datasource falhar', () async {
+      // Arrange
+      when(() => mockDataSource.getPostDetails(postId: 1))
+          .thenThrow(Exception('Erro'));
+
+      // Act & Assert
+      expect(() => repository.getPostDetails(postId: 1), throwsException);
+      verify(() => mockDataSource.getPostDetails(postId: 1)).called(1);
     });
   });
 }

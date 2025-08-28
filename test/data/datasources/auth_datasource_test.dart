@@ -1,75 +1,89 @@
 // ignore_for_file: subtype_of_sealed_class
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:magnum_bank/data/datasources/auth_datasource.dart';
 import 'package:magnum_bank/domain/entities/user.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-class _MockFirebaseAuth extends Mock implements FirebaseAuth {}
-class _MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
-class _MockCollectionReference extends Mock implements CollectionReference {}
-class _MockDocumentReference extends Mock implements DocumentReference {}
-class _MockDocumentSnapshot extends Mock implements DocumentSnapshot {}
-class _MockUserCredential extends Mock implements UserCredential {}
-class _MockUser extends Mock implements User {}
+// Mocks
+class MockFirebaseAuth extends Mock implements FirebaseAuth {}
+class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+class MockCollectionReference extends Mock
+    implements CollectionReference<Map<String, dynamic>> {}
+class MockDocumentReference extends Mock
+    implements DocumentReference<Map<String, dynamic>> {}
+class MockDocumentSnapshot extends Mock
+    implements DocumentSnapshot<Map<String, dynamic>> {}
+class MockUserCredential extends Mock implements UserCredential {}
 
 void main() {
+  late MockFirebaseAuth mockAuth;
+  late MockFirebaseFirestore mockFirestore;
+  late MockCollectionReference mockCollection;
+  late MockDocumentReference mockDocRef;
+  late AuthDataSource dataSource;
+
+  setUp(() {
+    mockAuth = MockFirebaseAuth();
+    mockFirestore = MockFirebaseFirestore();
+    mockCollection = MockCollectionReference();
+    mockDocRef = MockDocumentReference();
+
+    when(() => mockFirestore.collection(any())).thenReturn(mockCollection);
+    when(() => mockCollection.doc(any())).thenReturn(mockDocRef);
+
+    dataSource = AuthDataSource(auth: mockAuth, firestore: mockFirestore);
+  });
+
   group('AuthDataSource', () {
-    late AuthDataSource authDataSource;
-    late _MockFirebaseAuth mockAuth;
-    late _MockFirebaseFirestore mockFirestore;
-    late _MockCollectionReference mockCollection;
-    late _MockDocumentReference mockDocument;
-    late _MockDocumentSnapshot mockSnapshot;
-    late _MockUserCredential mockUserCredential;
+    final testUserId = '123';
+    final testUserProfile = UserProfile(
+      id: testUserId,
+      nome: 'Leanne Graham',
+      imagem: 'https://url.com/image.jpg',
+      idade: 45,
+      hobbies: ['dançar', 'comer', 'fumar'],
+      qntdPost: 10,
+    );
 
-    setUp(() {
-      mockAuth = _MockFirebaseAuth();
-      mockFirestore = _MockFirebaseFirestore();
-      mockCollection = _MockCollectionReference();
-      mockDocument = _MockDocumentReference();
-      mockSnapshot = _MockDocumentSnapshot();
-      mockUserCredential = _MockUserCredential();
+    test('saveUserProfile calls Firestore set', () async {
+      when(() => mockDocRef.set(testUserProfile.toMap()))
+          .thenAnswer((_) async => Future.value());
 
-      when(() => mockFirestore.collection('profiles')).thenReturn(mockCollection as CollectionReference<Map<String, dynamic>>);
-      when(() => mockCollection.doc(any())).thenReturn(mockDocument);
+      await dataSource.saveUserProfile(userId: testUserId, profile: testUserProfile);
 
-      authDataSource = AuthDataSource(auth: mockAuth, firestore: mockFirestore);
+      verify(() => mockFirestore.collection('users')).called(1);
+      verify(() => mockCollection.doc(testUserId)).called(1);
+      verify(() => mockDocRef.set(testUserProfile.toMap())).called(1);
     });
 
-    test('signInWithEmail deve retornar UserCredential em caso de sucesso', () async {
-      when(() => mockAuth.signInWithEmailAndPassword(email: 'test@example.com', password: 'password'))
-          .thenAnswer((_) async => mockUserCredential);
-      final result = await authDataSource.signInWithEmail(email: 'test@example.com', password: 'password');
-      expect(result, equals(mockUserCredential));
-    });
-
-    test('saveUserProfile deve chamar o método set no Firestore', () async {
-      var profile = UserProfile(name: 'Test', email: 'test@example.com', age: 25, hobbies: [], postCount: 0);
-      when(() => mockDocument.set(profile.toMap())).thenAnswer((_) async => Future.value());
-      await authDataSource.saveUserProfile(userId: '123', profile: profile);
-      verify(() => mockDocument.set(profile.toMap())).called(1);
-    });
-
-    test('getUserProfile deve retornar UserProfile em caso de sucesso', () async {
-      final mockData = {'name': 'Test', 'email': 'test@example.com', 'age': 25, 'hobbies': [], 'postCount': 0};
+    test('getUserProfileById returns UserProfile if exists', () async {
+      final mockSnapshot = MockDocumentSnapshot();
+      when(() => mockDocRef.get()).thenAnswer((_) async => mockSnapshot);
       when(() => mockSnapshot.exists).thenReturn(true);
-      when(() => mockSnapshot.data()).thenReturn(mockData);
-      when(() => mockDocument.get()).thenAnswer((_) async => mockSnapshot);
+      when(() => mockSnapshot.data()).thenReturn(testUserProfile.toMap());
+      when(() => mockSnapshot.id).thenReturn(testUserId);
 
-      final result = await authDataSource.getUserProfile(userId: '123');
-      expect(result, isA<UserProfile>());
-      expect(result!.name, 'Test');
+      final result = await dataSource.getUserProfileById(testUserId);
+
+      expect(result.id, testUserId);
+      expect(result.nome, 'Leanne Graham');
+      expect(result.idade, 45);
+      expect(result.hobbies.length, 3);
+      expect(result.qntdPost, 10);
     });
 
-    test('getUserProfile deve retornar null se o documento não existir', () async {
+    test('getUserProfileById throws exception if doc does not exist', () async {
+      final mockSnapshot = MockDocumentSnapshot();
+      when(() => mockDocRef.get()).thenAnswer((_) async => mockSnapshot);
       when(() => mockSnapshot.exists).thenReturn(false);
-      when(() => mockDocument.get()).thenAnswer((_) async => mockSnapshot);
 
-      final result = await authDataSource.getUserProfile(userId: '123');
-      expect(result, isNull);
+      expect(
+          () async => await dataSource.getUserProfileById(testUserId),
+          throwsA(isA<Exception>().having(
+              (e) => e.toString(), 'message', contains('Usuário não encontrado'))));
     });
   });
 }

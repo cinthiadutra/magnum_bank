@@ -31,6 +31,6 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<UserProfile?> getUserProfile({required String userId}) {
-    return _authDataSource.getUserProfile(userId: userId);
+    return _authDataSource.getUserProfileById( userId);
   }
 }
